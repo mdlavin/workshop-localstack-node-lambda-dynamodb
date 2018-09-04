@@ -7,16 +7,18 @@
     "build": "mkdir -p build/ && rm build/lambda.zip && zip --quiet -r build/lambda.zip node_modules/uuid/* && cd src && zip --quiet ../build/lambda.zip *",
     "preintegration-test": "npm run-script build",
     "integration-test": "cd test/integration && export COMPOSE_PROJECT_NAME=${RANDOM}; docker-compose up --abort-on-container-exit --exit-code-from tests; EXIT_CODE=$?; docker-compose down; exit $EXIT_CODE",
-    "test": "jest --coverage"
+    "test": "export AWS_REGION=test; export AWS_ACCESS_KEY_ID=unittest-key; export AWS_SECRET_ACCESS_KEY=unittest-secret; jest test/unit --coverage"
   },
   "author": "Matt Lavin <matt.lavin@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.307.0",
-    "fs-extra": "^7.0.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "jest": "^23.5.0"
+    "aws-sdk-mock": "^4.1.0",
+    "fs-extra": "^7.0.0",
+    "jest": "^23.5.0",
+    "sinon": "^6.1.5"
   }
 }
