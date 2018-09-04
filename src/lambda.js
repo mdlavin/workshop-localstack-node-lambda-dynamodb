@@ -9,3 +9,8 @@ exports.add = async function (event, context) {
   const item = await database.add(event.text);
   return item;
 }
+
+exports.delete = async function (event, context) {
+  const item = await database.delete(event.id);
+  return item;
+}

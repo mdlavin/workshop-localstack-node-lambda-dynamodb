@@ -14,3 +14,13 @@ exports.add = async function (todo) {
   storage.push(item);
   return item;
 }
+
+exports.delete = async function (idToDelete) {
+  const index = storage.findIndex(({id}) => id === idToDelete);
+  if (index < 0) {
+    return null;
+  }
+
+  const item = storage.splice(index, 1);
+  return item;
+}
