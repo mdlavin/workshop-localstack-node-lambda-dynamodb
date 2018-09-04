@@ -40,11 +40,36 @@ beforeAll(async () => {
     Runtime: 'nodejs8.10',
     Role: 'fake-role'
   }).promise();
+
+  const dyanmoDbClient = new AWS.DynamoDB({
+    endpoint: process.env.AWS_DYNAMODB_ENDPOINT
+  });
+
+  await dyanmoDbClient.createTable({
+    AttributeDefinitions: [
+      {
+        AttributeName: "id",
+        AttributeType: "S"
+      },
+      ],
+    KeySchema: [
+      {
+        AttributeName: "id",
+        KeyType: "HASH"
+      },
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 1,
+      WriteCapacityUnits: 1
+    },
+    TableName: "todos"
+  }).promise();
 });
 
 test('listing TODOs works', async () => {
   const listResult = await lambdaClient.invoke({
-    FunctionName: 'todo-list'
+    FunctionName: 'todo-list',
+    Payload: JSON.stringify({})
   }).promise();
 
   expect(listResult.StatusCode).toBe(200);
@@ -75,12 +100,12 @@ test('adding TODO works', async () => {
   expect(listResult.StatusCode).toBe(200);
   const listReponsePayload = JSON.parse(listResult.Payload);
   expect(listReponsePayload).toContainEqual({
-    id: addResult.id,
+    id: addResponsePayload.id,
     text: createEvent.text
   });
 });
 
-test('deleting a non existent TODO returns null', async () => {
+xtest('deleting a non existent TODO returns null', async () => {
   const delResult = await lambdaClient.invoke({
     FunctionName: 'todo-delete',
     Payload: JSON.stringify({
@@ -92,4 +117,8 @@ test('deleting a non existent TODO returns null', async () => {
   expect(delResult.StatusCode).toBe(200);
   const delResponsePayload = JSON.parse(delResult.Payload);
   expect(delResponsePayload).toBeNull();
+});
+
+xtest('deleting a TODOs works', async () => {
+  throw new Error('Should implement');
 });

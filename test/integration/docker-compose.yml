@@ -23,5 +23,6 @@ services:
       - AWS_ACCESS_KEY_ID=localstack-key
       - AWS_SECRET_ACCESS_KEY=localstack-secret
       - AWS_LAMBDA_ENDPOINT=http://localstack:4574
+      - AWS_DYNAMODB_ENDPOINT=http://localstack:4569
     volumes:
       - "../..:/opt/work"

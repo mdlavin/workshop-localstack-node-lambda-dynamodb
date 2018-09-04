@@ -2,7 +2,7 @@ const AWS = require('aws-sdk');
 const uuid = require('uuid/v4');
 
 const dynamoDbClient = new AWS.DynamoDB.DocumentClient({
-  endpoint: process.env.AWS_DYNAMODB_ENDPOINT
+  endpoint: process.env.LOCALSTACK_HOSTNAME ? `http://${process.env.LOCALSTACK_HOSTNAME}:4569/` : undefined
 })
 
 exports.list = async function () {
