@@ -29,6 +29,17 @@ beforeAll(async () => {
     Runtime: 'nodejs8.10',
     Role: 'fake-role'
   }).promise();
+
+  // Create a Lambda for deleting TODOs
+  await lambdaClient.createFunction({
+    Code: {
+      ZipFile: lambda
+    },
+    FunctionName: 'todo-delete',
+    Handler: 'lambda.delete',
+    Runtime: 'nodejs8.10',
+    Role: 'fake-role'
+  }).promise();
 });
 
 test('listing TODOs works', async () => {
@@ -67,4 +78,18 @@ test('adding TODO works', async () => {
     id: addResult.id,
     text: createEvent.text
   });
+});
+
+test('deleting a non existent TODO returns null', async () => {
+  const delResult = await lambdaClient.invoke({
+    FunctionName: 'todo-delete',
+    Payload: JSON.stringify({
+      id: 'not-real'
+    })
+  }).promise();
+
+  // Verify that the add returned with success
+  expect(delResult.StatusCode).toBe(200);
+  const delResponsePayload = JSON.parse(delResult.Payload);
+  expect(delResponsePayload).toBeNull();
 });
