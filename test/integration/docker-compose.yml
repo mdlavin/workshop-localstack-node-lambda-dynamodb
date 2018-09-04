@@ -1,0 +1,27 @@
+version: '2.1'
+
+services:
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4567-4583:4567-4583"
+      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
+    environment:
+      - SERVICES=dynamodb,lambda
+      - DEBUG=true
+      - DATA_DIR=${DATA_DIR- }
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  tests:
+    image: node:8
+    command: npx jest test/integration/lambda.test.js
+    working_dir: /opt/work
+    environment:
+      - AWS_REGION=localstack
+      - AWS_ACCESS_KEY_ID=localstack-key
+      - AWS_SECRET_ACCESS_KEY=localstack-secret
+      - AWS_LAMBDA_ENDPOINT=http://localstack:4574
+    volumes:
+      - "../..:/opt/work"

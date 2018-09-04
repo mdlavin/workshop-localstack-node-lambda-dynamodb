@@ -4,11 +4,16 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
+    "build": "mkdir -p build/ && rm build/lambda.zip && zip --quiet -r build/lambda.zip node_modules/uuid/* && cd src && zip --quiet ../build/lambda.zip *",
+    "preintegration-test": "npm run-script build",
+    "integration-test": "cd test/integration && export COMPOSE_PROJECT_NAME=${RANDOM}; docker-compose up --abort-on-container-exit --exit-code-from tests; EXIT_CODE=$?; docker-compose down; exit $EXIT_CODE",
     "test": "jest --coverage"
   },
   "author": "Matt Lavin <matt.lavin@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.307.0",
+    "fs-extra": "^7.0.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
