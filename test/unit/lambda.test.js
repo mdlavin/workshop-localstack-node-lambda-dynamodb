@@ -1,5 +1,11 @@
 const AWS = require('aws-sdk-mock');
 const sinon = require('sinon');
+const uuid = require('uuid');
+
+let deleteStub = sinon.stub();
+beforeAll(function () {
+  AWS.mock('DynamoDB.DocumentClient', 'delete', deleteStub);
+});
 
 test('listing TODOs pulls data from dynamodb', async () => {
   const fakeItem = {id: 'fake-id', text: 'mock-text' };
@@ -41,30 +47,45 @@ test('adding TODO puts items into dynamodb', async () => {
   expect(addResult.text).toBe(createEvent.text);
 });
 
-xtest('deleting a non existent TODO returns null', async () => {
+test('deleting a non existent TODO returns null', async () => {
+  const itemToDelete = {
+    id: 'not-real'
+  }
 
-  const delResult = await lambda.delete({id: 'not-real'}, {});
+  deleteStub
+    .withArgs(sinon.match({
+      TableName: 'todos',
+      Key: sinon.match({
+        id: itemToDelete.id
+      })
+    }))
+    .yields(null, null)
+
+  const lambda = require('../../src/lambda');
+  const delResult = await lambda.delete({id: itemToDelete.id}, {});
 
   // Verify that the add returned with success
   expect(delResult).toBeNull();
 });
 
-xtest('deleting TODO works', async () => {
-  const createEvent = {
-    text: 'Create deletion test'
-  };
-  const addResult = await lambda.add(createEvent, {});
+test('deleting TODO works', async () => {
+  const itemToDelete = {
+    id: uuid(),
+    text: 'delete this item'
+  }
+
+  deleteStub
+    .withArgs(sinon.match({
+      TableName: 'todos',
+      Key: {
+        id: itemToDelete.id
+      }
+    }))
+    .yields(null, itemToDelete)
+
+  const lambda = require('../../src/lambda');
+  const delResult = await lambda.delete({id: itemToDelete.id}, {});
 
   // Verify that the add returned with success
-  expect(addResult.id).toBeTruthy();
-  expect(addResult.text).toBe(createEvent.text);
-
-  const delResult = await lambda.delete({id: addResult.id}, {});
-
-  // Verify that the item was added to the list
-  const listResult = await lambda.list();
-  expect(listResult).not.toContainEqual({
-    id: addResult.id,
-    text: createEvent.text
-  });
+  expect(delResult).toEqual(itemToDelete);
 });

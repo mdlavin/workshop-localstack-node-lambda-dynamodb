@@ -27,5 +27,12 @@ exports.add = async function (todo) {
 }
 
 exports.delete = async function (idToDelete) {
-  throw new Error('Need to implement delete!');
+  const result = await dynamoDbClient.delete({
+    TableName: 'todos',
+    Key: {
+      id: idToDelete
+    }
+  }).promise();
+
+  return result;
 }
