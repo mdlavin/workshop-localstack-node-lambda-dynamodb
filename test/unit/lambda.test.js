@@ -53,13 +53,14 @@ test('deleting a non existent TODO returns null', async () => {
   }
 
   deleteStub
-    .withArgs(sinon.match({
+    .withArgs({
       TableName: 'todos',
       Key: sinon.match({
         id: itemToDelete.id
-      })
-    }))
-    .yields(null, null)
+      }),
+      ReturnValues: 'ALL_OLD'
+    })
+    .yields(null, {})
 
   const lambda = require('../../src/lambda');
   const delResult = await lambda.delete({id: itemToDelete.id}, {});
@@ -75,13 +76,16 @@ test('deleting TODO works', async () => {
   }
 
   deleteStub
-    .withArgs(sinon.match({
+    .withArgs({
       TableName: 'todos',
       Key: {
         id: itemToDelete.id
-      }
-    }))
-    .yields(null, itemToDelete)
+      },
+      ReturnValues: 'ALL_OLD'
+    })
+    .yields(null, {
+      Attributes: itemToDelete
+    })
 
   const lambda = require('../../src/lambda');
   const delResult = await lambda.delete({id: itemToDelete.id}, {});

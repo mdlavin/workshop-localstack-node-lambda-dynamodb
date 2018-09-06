@@ -94,7 +94,8 @@ test('adding TODO works', async () => {
 
   // Verify that the item was added to the list
   const listResult = await lambdaClient.invoke({
-    FunctionName: 'todo-list'
+    FunctionName: 'todo-list',
+    Payload: JSON.stringify({})
   }).promise();
 
   expect(listResult.StatusCode).toBe(200);
@@ -105,7 +106,7 @@ test('adding TODO works', async () => {
   });
 });
 
-xtest('deleting a non existent TODO returns null', async () => {
+test('deleting a non existent TODO returns null', async () => {
   const delResult = await lambdaClient.invoke({
     FunctionName: 'todo-delete',
     Payload: JSON.stringify({
@@ -119,6 +120,46 @@ xtest('deleting a non existent TODO returns null', async () => {
   expect(delResponsePayload).toBeNull();
 });
 
-xtest('deleting a TODOs works', async () => {
-  throw new Error('Should implement');
-});
+test('deleting a TODOs works', async () => {
+  // Add a TODO first, so that it can be deleted
+  const createEvent = {
+    text: 'This should be deleted'
+  };
+
+  const addResult = await lambdaClient.invoke({
+    FunctionName: 'todo-add',
+    Payload: JSON.stringify(createEvent)
+  }).promise();
+
+  // Verify that the add returned with success
+  expect(addResult.StatusCode).toBe(200);
+  const addResponsePayload = JSON.parse(addResult.Payload);
+
+  // Delete the TODO entry that was just added
+  const deleteResult = await lambdaClient.invoke({
+    FunctionName: 'todo-delete',
+    Payload: JSON.stringify({
+      id: addResponsePayload.id
+    })
+  }).promise();
+
+  expect(deleteResult.StatusCode).toBe(200);
+  const deleteReponsePayload = JSON.parse(deleteResult.Payload);
+  expect(deleteReponsePayload).toEqual({
+    id: addResponsePayload.id,
+    text: createEvent.text
+  });
+
+  // Verify that the item is no longer in the list
+  const listResult = await lambdaClient.invoke({
+    FunctionName: 'todo-list',
+    Payload: JSON.stringify({})
+  }).promise();
+
+  expect(listResult.StatusCode).toBe(200);
+  const listReponsePayload = JSON.parse(listResult.Payload);
+  expect(listReponsePayload).not.toContainEqual({
+    id: addResponsePayload.id,
+    text: createEvent.text
+  });
+}, 10000);

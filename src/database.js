@@ -31,8 +31,13 @@ exports.delete = async function (idToDelete) {
     TableName: 'todos',
     Key: {
       id: idToDelete
-    }
+    },
+    ReturnValues: 'ALL_OLD'
   }).promise();
 
-  return result;
+  if (!result.Attributes) {
+    return null
+  }
+
+  return result.Attributes;
 }
